@@ -8,6 +8,34 @@
 //  richtung  0,2 - 0,4    Senden puls 1 = vor
 //  on        0,4          Button A
 //  stop                   Button B
+//  Init
+//  =========================
+radio.setGroup(1)
+radio.setTransmitPower(7)
+let richtung = 0
+let licht_on = 0
+let speedRoh = 0
+let speedOld = 0
+let speedAbs = 0
+let speedFaktor = 2
+let remCtrl = 0
+let speed = 0
+let fahren = 0
+let trigger = 0
+let hyst = 5
+let s0 = 10
+let s2 = 80
+let r0 = 10
+let r2 = 80
+basic.showLeds(`
+    . . . . .
+    . # # # .
+    . # . # .
+    . # # # .
+    . . . . .
+    `)
+basic.pause(1000)
+basic.clearScreen()
 //  Buttons
 //  =====================================
 //  A: on/off, on: LED 0,4
@@ -238,34 +266,6 @@ function showRichtung() {
     
 }
 
-//  Init
-//  =========================
-radio.setGroup(1)
-radio.setTransmitPower(7)
-let richtung = 0
-let licht_on = 0
-let speedRoh = 0
-let speedOld = 0
-let speedAbs = 0
-let speedFaktor = 2
-let remCtrl = 0
-let speed = 0
-let fahren = 0
-let trigger = 0
-let hyst = 5
-let s0 = 10
-let s2 = 80
-let r0 = 10
-let r2 = 80
-basic.showLeds(`
-    . . . . .
-    . # # # .
-    . # . # .
-    . # # # .
-    . . . . .
-    `)
-basic.pause(1000)
-basic.clearScreen()
 //  Time Loop 1s
 //  =====================================
 loops.everyInterval(1000, function onEvery_interval() {
