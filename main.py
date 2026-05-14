@@ -85,6 +85,31 @@ def on_button_pressed_a():
 
     elif mode == "dir":
         print("A: dir")
+        if sel_Kreis[0]:
+            if vor_Kreis[0] == 0:
+                vor_Kreis[0] = 1
+                led.plot(0,0)
+            else:
+                vor_Kreis[0] = 0
+                led.unplot(0,0)
+            print("vor K1: "+vor_Kreis[0])
+        if sel_Kreis[1]:
+            if vor_Kreis[1] == 0:
+                vor_Kreis[1] = 1
+                led.plot(1,0)
+            else:
+                vor_Kreis[1] = 0
+                led.unplot(1,0)
+                print("vor K2: "+vor_Kreis[1])
+        if sel_Kreis[2]:              
+            if vor_Kreis[2] == 0:
+                vor_Kreis[2] = 1
+                led.plot(2,0)
+            else:
+                vor_Kreis[2] = 0
+                led.unplot(2,0)
+                print("vor K3: "+vor_Kreis[2])
+
     elif mode == "ea":
         print("A: ea")
     else:
@@ -290,9 +315,9 @@ def on_forever():
         #setSpeed()
         showSpeed(0)
         setRichtung()
-        showRichtung()
+        #showRichtung()
         sendData()
     else:
         showSpeed(0)
-        showRichtung()
+        #showRichtung()
 basic.forever(on_forever)

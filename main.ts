@@ -86,6 +86,42 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
         
     } else if (mode == "dir") {
         console.log("A: dir")
+        if (sel_Kreis[0]) {
+            if (vor_Kreis[0] == 0) {
+                vor_Kreis[0] = 1
+                led.plot(0, 0)
+            } else {
+                vor_Kreis[0] = 0
+                led.unplot(0, 0)
+            }
+            
+            console.log("vor K1: " + vor_Kreis[0])
+        }
+        
+        if (sel_Kreis[1]) {
+            if (vor_Kreis[1] == 0) {
+                vor_Kreis[1] = 1
+                led.plot(1, 0)
+            } else {
+                vor_Kreis[1] = 0
+                led.unplot(1, 0)
+                console.log("vor K2: " + vor_Kreis[1])
+            }
+            
+        }
+        
+        if (sel_Kreis[2]) {
+            if (vor_Kreis[2] == 0) {
+                vor_Kreis[2] = 1
+                led.plot(2, 0)
+            } else {
+                vor_Kreis[2] = 0
+                led.unplot(2, 0)
+                console.log("vor K3: " + vor_Kreis[2])
+            }
+            
+        }
+        
     } else if (mode == "ea") {
         console.log("A: ea")
     } else {
@@ -323,17 +359,17 @@ loops.everyInterval(1000, function on_every_interval() {
 })
 //  Main Loop
 //  =====================================
+// showRichtung()
 basic.forever(function on_forever() {
     let changed = 0
     if (changed) {
         // setSpeed()
         showSpeed(0)
         setRichtung()
-        showRichtung()
+        // showRichtung()
         sendData()
     } else {
         showSpeed(0)
-        showRichtung()
     }
     
 })
