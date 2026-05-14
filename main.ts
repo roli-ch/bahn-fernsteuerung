@@ -1,32 +1,59 @@
 //  Programm name:    bahn-fernsteuerung
 //  Sender mit Rotation
 //  V1 Basis  13.5.2026
+// 
+//  LED Anzeigen: (x,y)
+//  vor_K1    0,0         Senden
+//  vor_K1    1,0         Senden
+//  vor_K1    2,0         Senden
+//  ein_K1    0,1         Senden
+//  ein_K1    1,1         Senden
+//  ein_K1    2,1         Senden
+//  Speed K1  0,2 - 0,4   Senden
+//  Speed K2  1,2 - 1,4   Senden
+//  Speed K3  2,2 - 2,4   Senden
+//  Remote    4,4         Empfangen
+//  sel_K1    3,0
+//  sel_K2    3,1
+//  sel_K2    3,2
+//  sel_speed 3,4
+//  select                Button A
+//  stop                  Button B
 //  
-//  LED Anzeigen:
-//  Remote    0,0          Empfangen
-//  Speed     2,0 - 2,4    Senden 
-//  richtung  0,2 - 0,4    Senden puls 1 = vor
-//  on        0,4          Button A
-//  stop                   Button B
+//  Konstanten
+//  =========================
+let speedlim1 = 30
+let speedlim2 = 60
+let speedlim3 = 90
+// 
 //  Init
 //  =========================
 radio.setGroup(1)
 radio.setTransmitPower(7)
-let richtung = 0
-let licht_on = 0
-let speedRoh = 0
-let speedOld = 0
-let speedAbs = 0
-let speedFaktor = 2
 let remCtrl = 0
+let speedAbs = 0
+let speedRoh = 0
+let sel_K3 = 0
+let sel_K2 = 0
+let sel_K1 = 0
+let pos3 : number[] = []
+let vor_K1 = 0
+let mode = ""
+speedlim2 = 0
+speedlim1 = 0
 let speed = 0
-let fahren = 0
-let trigger = 0
-let hyst = 5
-let s0 = 10
-let s2 = 80
-let r0 = 10
-let r2 = 80
+let receive = 0
+let vor_K3 = 0
+let ein_K3 = 0
+let vor_K2 = 0
+let ein_K2 = 0
+let ein_K32 = 0
+let ein_K22 = 0
+let ein_K12 = 0
+let ein_K1 = 1
+mode = "sel"
+//  enum Mode {"sel", "speed"}        // JavaScript
+let show_interval = 0
 basic.showLeds(`
     . . . . .
     . # # # .
@@ -36,129 +63,83 @@ basic.showLeds(`
     `)
 basic.pause(1000)
 basic.clearScreen()
-//  Buttons
-//  =====================================
-//  A: on/off, on: LED 0,4
-input.onButtonPressed(Button.A, function on_button_pressed_a() {
-    
-    if (fahren == 0) {
-        fahren = 1
-        set_led_fahren(1)
-        // led.plot(0, 0)
-        music.play(music.builtinPlayableSoundEffect(soundExpression.hello), music.PlaybackMode.UntilDone)
-    } else {
-        fahren = 0
-        speed = 0
-        richtung = 0
-        trigger = 1
-        sendData()
-        set_led_fahren(0)
-        //  led.unplot(0, 0)
-        music.play(music.createSoundExpression(WaveShape.Sine, 5000, 0, 255, 0, 1000, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-    }
-    
-    radio.sendValue("fahren", fahren)
-})
-//  B: Licht on/off, on: LED xy44
-input.onButtonPressed(Button.B, function on_button_pressed_b() {
-    
-    if (licht_on == 0) {
-        licht_on = 1
-        set_led_licht(1)
-    } else {
-        //  led.plot(4, 0)
-        licht_on = 0
-        sendData()
-        set_led_licht(0)
-    }
-    
-    // led.unplot(4, 0)
-    radio.sendValue("licht_on", licht_on)
-})
+// 
+// 
 //  Funktionen
-//  ===================================
-//  Leds ein/aus
-//  -------------------
-//  remoteControl
-function set_keis_ein(kreisNr: any, on: any) {
-    let pos = [0, 0]
-    if (on) {
-        led.plot(pos[0], pos[1])
+//  =========================
+//  
+//  -------------------------
+function showRichtung() {
+    if (vor_K1) {
+        led.plot(2, 2)
+        led.plot(3, 2)
+        led.plot(4, 2)
     } else {
-        led.unplot(pos[0], pos[1])
+        led.unplot(4, 2)
+        led.plot(3, 2)
     }
     
 }
 
-//  fahren
-function set_led_fahren(on: number) {
-    let pos = [0, 4]
-    if (on) {
-        led.plot(pos[0], pos[1])
+//  -------------------------
+function set_led_stop(on3: number) {
+    
+    pos3 = [2, 2]
+    if (true) {
+        led.plot(pos3[0], pos3[1])
     } else {
-        led.unplot(pos[0], pos[1])
+        led.unplot(pos3[0], pos3[1])
     }
     
 }
 
-//  stop
-function set_led_stop(on: number) {
-    let pos = [2, 2]
-    if (on) {
-        led.plot(pos[0], pos[1])
-    } else {
-        led.unplot(pos[0], pos[1])
-    }
-    
-}
-
-//  licht
-function set_led_licht(on: number) {
-    let pos = [4, 4]
-    if (on) {
-        led.plot(pos[0], pos[1])
-    } else {
-        led.unplot(pos[0], pos[1])
-    }
-    
-}
-
+//  -------------------------
 //  Daten Senden
 function sendData() {
-    
-    // trigger = 1
+    let trigger: number;
+    //  trigger = 1
     if (trigger == 1) {
         //  Daten anzeigen
         serial.writeValue("speed", speed)
-        serial.writeValue("richtung", richtung)
         //  Senden
         radio.sendNumber(1)
         radio.setTransmitSerialNumber(true)
         radio.sendValue("speed", speed)
-        radio.sendValue("richtung", richtung)
-        radio.sendValue("licht_on", licht_on)
         trigger = 0
     }
     
 }
 
-//  Daten Empfangen
-//  set_led_remote(0)
-radio.onReceivedValue(function on_received_value(name: string, value: number) {
+//  Buttons
+//  =====================================
+//  A: select / speed +
+input.onButtonPressed(Button.A, function on_button_pressed_a() {
     
-    music.play(music.tonePlayable(Note.C, music.beat(BeatFraction.Whole)), music.PlaybackMode.UntilDone)
-    serial.writeValue("daten empfangen: " + name, value)
-    if (name == "remCtrl") {
-        remCtrl = value
+    if (mode == "sel") {
+        console.log("A: select")
+        if (sel_K1) {
+            sel_K1 = 0
+            sel_K2 = 1
+        } else if (sel_K2) {
+            sel_K2 = 0
+            sel_K3 = 1
+        } else if (sel_K3) {
+            sel_K3 = 0
+            sel_K1 = 1
+        }
+        
     }
     
-    if (remCtrl) {
-        
-    } else {
-        //  set_led_remote(1)
-        
-    }
-    
+})
+//  B: select / speed -
+//  -------------------------
+input.onButtonPressed(Button.B, function on_button_pressed_b() {
+    console.log("B: stop")
+})
+//  A&B: Umschalten select/speed
+//  -------------------------
+input.onButtonPressed(Button.AB, function on_button_pressed_ab() {
+    console.log("AB: select/speed")
 })
 function setSpeed() {
     let speedDir: number;
@@ -170,119 +151,105 @@ function setSpeed() {
         speedDir = -1
     }
     
-    // speed = Math.constrain(abs(speedRoh) - s0, 0, 100)
-    // speed = min(100, speed / 2 * 10) * speedDir
-    speed = Math.min(100, Math.abs(speedRoh * speedFaktor)) * speedDir
+    //  speed = Math.constrain(abs(speedRoh) - s0, 0, 100)
+    //  speed = min(100, speed / 2 * 10) * speedDir
+    speed = Math.min(100, Math.abs(speedRoh * 1)) * speedDir
     speedAbs = Math.abs(speed)
-    if (Math.abs(speedAbs - speedOld) > hyst) {
-        trigger = 1
-        // serial.write_value("speedAbs", speedAbs)
-        // serial.write_value("speedOld", speedOld)
-        speedOld = speedAbs
-    }
-    
 }
 
 function setRichtung() {
     let richtungDir: number;
-    let trigger: number;
-    let richtungOld: number;
-    
-    if (richtung) {
+    if (vor_K1) {
         richtungDir = 1
     } else {
         richtungDir = -1
     }
     
-    // richtung = Math.constrain(abs(richtungRoh) - r0, 0, 100)
-    // richtung = min(100, richtung / 2 * 10) * richtungDir
-    let richtungAbs = Math.abs(richtung)
-    if (Math.abs(richtungAbs - richtungOld) > hyst) {
-        trigger = 1
-        richtungOld = richtungAbs
-    }
-    
 }
 
+//  Daten Empfangen
+//  set_led_remote(0)
+radio.onReceivedValue(function on_received_value(name: string, value: number) {
+    
+    serial.writeValue("daten empfangen: " + name, value)
+    if (name == "remCtrl") {
+        remCtrl = value
+    }
+    
+    //  set_led_remote(1)
+    if (remCtrl) {
+        
+    } else {
+        
+    }
+    
+})
 function showSpeed() {
-    if (speed > 0) {
-        if (speed > s2) {
-            led.plot(2, 0)
-            led.plot(2, 1)
-            led.plot(2, 2)
-        } else {
-            led.unplot(2, 0)
-            led.plot(2, 1)
-        }
-        
-    } else if (speed < 0) {
-        if (speed < -1 * s2) {
-            led.plot(2, 2)
-            led.plot(2, 3)
-            led.plot(2, 4)
-        } else {
-            led.plot(2, 3)
-            led.unplot(2, 4)
-        }
-        
-    } else if (speed == 0) {
-        led.unplot(2, 0)
-        led.unplot(2, 1)
+    if (speed > speedlim1) {
+        led.plot(2, 0)
+        led.plot(2, 1)
         led.plot(2, 2)
-        led.unplot(2, 3)
+    } else {
+        led.unplot(2, 0)
+        led.plot(2, 1)
+    }
+    
+    if (speed > speedlim2) {
+        led.plot(2, 2)
+        led.plot(2, 3)
+        led.plot(2, 4)
+    } else {
+        led.plot(2, 3)
         led.unplot(2, 4)
     }
     
 }
 
-function showRichtung() {
-    if (richtung > 0) {
-        if (richtung > r2) {
-            led.plot(2, 2)
-            led.plot(3, 2)
-            led.plot(4, 2)
-        } else {
-            led.unplot(4, 2)
-            led.plot(3, 2)
-        }
-        
-    } else if (richtung < 0) {
-        if (richtung < -1 * r2) {
-            led.plot(0, 2)
-            led.plot(1, 2)
-            led.plot(2, 2)
-        } else {
-            led.plot(1, 2)
-            led.unplot(0, 2)
-        }
-        
-    } else if (richtung == 0) {
-        led.unplot(0, 2)
-        led.unplot(1, 2)
-        led.plot(2, 2)
-        led.unplot(3, 2)
-        led.unplot(4, 2)
+function set_keis_ein(kreisNr: any, on: any) {
+    let pos = [0, 0]
+    if (on) {
+        led.plot(pos[0], pos[1])
+    } else {
+        led.unplot(pos[0], pos[1])
+    }
+    
+}
+
+function set_led_fahren(on2: any) {
+    let pos2 = [0, 4]
+    if (on2) {
+        led.plot(pos2[0], pos2[1])
+    } else {
+        led.unplot(pos2[0], pos2[1])
+    }
+    
+}
+
+function set_led_licht(on4: any) {
+    let pos4 = [4, 4]
+    if (on4) {
+        led.plot(pos4[0], pos4[1])
+    } else {
+        led.unplot(pos4[0], pos4[1])
     }
     
 }
 
 //  Time Loop 1s
 //  =====================================
-loops.everyInterval(1000, function onEvery_interval() {
-    //  Daten Anzeigen
-    console.log("===========")
-    console.log("interval 1s; Zeit: " + control.millis() / 1000)
-    console.log("speed: " + speed)
-    console.log("richtung: " + richtung)
-    console.log("Fahren: " + fahren)
-    console.log("Licht: " + licht_on)
+loops.everyInterval(1000, function on_every_interval() {
+    if (show_interval) {
+        console.log("===========")
+        console.log("interval 1s; Zeit: " + ("" + ("" + control.millis() / 1000)))
+        console.log("speed: " + ("" + ("" + speed)))
+    }
+    
 })
 //  Main Loop
 //  =====================================
 basic.forever(function on_forever() {
-    
-    if (fahren == 1) {
-        set_led_fahren(1)
+    let changed = 0
+    if (changed) {
         setSpeed()
         showSpeed()
         setRichtung()
