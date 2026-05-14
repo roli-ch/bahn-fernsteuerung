@@ -31,29 +31,17 @@ let speedlim3 = 90
 radio.setGroup(1)
 radio.setTransmitPower(7)
 let remCtrl = 0
-let speedAbs = 0
-let speedRoh = 0
-let sel_K3 = 0
-let sel_K2 = 0
-let sel_K1 = 0
-let pos3 : number[] = []
-let vor_K1 = 0
-let mode = ""
-speedlim2 = 0
-speedlim1 = 0
-let speed = 0
+let vor_Kreis = [1, 0, 1]
+let ein_Kreis = [0, 0, 0]
+let sel_Kreis = [0, 0, 0, 0, 0]
+let speed_Kreis = [20, 40, 80]
+let speed_up = 1
 let receive = 0
-let vor_K3 = 0
-let ein_K3 = 0
-let vor_K2 = 0
-let ein_K2 = 0
-let ein_K32 = 0
-let ein_K22 = 0
-let ein_K12 = 0
-let ein_K1 = 1
-mode = "sel"
+let mode = "sel"
+//  sel / speed / dir / ea
 //  enum Mode {"sel", "speed"}        // JavaScript
 let show_interval = 0
+let send_request = 0
 basic.showLeds(`
     . . . . .
     . # # # .
@@ -63,103 +51,219 @@ basic.showLeds(`
     `)
 basic.pause(1000)
 basic.clearScreen()
+console.log("Init")
+// showStatus()
 // 
-// 
-//  Funktionen
-//  =========================
-//  
-//  -------------------------
-function showRichtung() {
-    if (vor_K1) {
-        led.plot(2, 2)
-        led.plot(3, 2)
-        led.plot(4, 2)
-    } else {
-        led.unplot(4, 2)
-        led.plot(3, 2)
-    }
-    
-}
-
-//  -------------------------
-function set_led_stop(on3: number) {
-    
-    pos3 = [2, 2]
-    if (true) {
-        led.plot(pos3[0], pos3[1])
-    } else {
-        led.unplot(pos3[0], pos3[1])
-    }
-    
-}
-
-//  -------------------------
-//  Daten Senden
-function sendData() {
-    let trigger: number;
-    //  trigger = 1
-    if (trigger == 1) {
-        //  Daten anzeigen
-        serial.writeValue("speed", speed)
-        //  Senden
-        radio.sendNumber(1)
-        radio.setTransmitSerialNumber(true)
-        radio.sendValue("speed", speed)
-        trigger = 0
-    }
-    
-}
-
 //  Buttons
 //  =====================================
 //  A: select / speed +
+// showStatus()
 input.onButtonPressed(Button.A, function on_button_pressed_a() {
-    
+    // led.plot(0,0)
+    // led.unplot(4,4)
     if (mode == "sel") {
         console.log("A: select")
-        if (sel_K1) {
-            sel_K1 = 0
-            sel_K2 = 1
-        } else if (sel_K2) {
-            sel_K2 = 0
-            sel_K3 = 1
-        } else if (sel_K3) {
-            sel_K3 = 0
-            sel_K1 = 1
+        kreisSelection()
+    } else if (mode == "speed") {
+        console.log("A: speed")
+        if (sel_Kreis[0]) {
+            speed_Kreis[0] = setSpeed(speed_Kreis[0])
+            showSpeed(0)
+            console.log("speed K1: " + speed_Kreis[0])
         }
         
+        if (sel_Kreis[1]) {
+            speed_Kreis[1] = setSpeed(speed_Kreis[1])
+            showSpeed(1)
+            console.log("speed K2: " + speed_Kreis[1])
+        }
+        
+        if (sel_Kreis[2]) {
+            speed_Kreis[2] = setSpeed(speed_Kreis[2])
+            showSpeed(2)
+            console.log("speed K3: " + speed_Kreis[2])
+        }
+        
+    } else if (mode == "dir") {
+        console.log("A: dir")
+    } else if (mode == "ea") {
+        console.log("A: ea")
+    } else {
+        console.log("mode Fehler")
     }
     
 })
 //  B: select / speed -
 //  -------------------------
 input.onButtonPressed(Button.B, function on_button_pressed_b() {
-    console.log("B: stop")
+    console.log("B:")
+    // led.plot(4,4)
+    // led.unplot(0,0)
+    showStatus()
 })
-//  A&B: Umschalten select/speed
+//  A&B: Umschalten mode select/speed/dir/ea
 //  -------------------------
+// showStatus()
 input.onButtonPressed(Button.AB, function on_button_pressed_ab() {
-    console.log("AB: select/speed")
-})
-function setSpeed() {
-    let speedDir: number;
     
-    speedRoh = input.rotation(Rotation.Pitch) * -1
-    if (speedRoh > 0) {
-        speedDir = 1
+    console.log("AB: select/speed/dir/ea")
+    if (mode == "sel") {
+        mode = "speed"
+        led.plot(4, 1)
+        led.unplot(4, 0)
+    } else if (mode == "speed") {
+        mode = "dir"
+        led.plot(4, 2)
+        led.unplot(4, 1)
+    } else if (mode == "dir") {
+        mode = "ea"
+        led.plot(4, 3)
+        led.unplot(4, 2)
+    } else if (mode == "ea") {
+        mode = "sel"
+        led.plot(4, 0)
+        led.unplot(4, 3)
     } else {
-        speedDir = -1
+        console.log("fehler")
     }
     
-    //  speed = Math.constrain(abs(speedRoh) - s0, 0, 100)
-    //  speed = min(100, speed / 2 * 10) * speedDir
-    speed = Math.min(100, Math.abs(speedRoh * 1)) * speedDir
-    speedAbs = Math.abs(speed)
+    console.log(mode)
+})
+// 
+//  Funktionen
+//  =========================
+//  
+//  -------------------------
+function kreisSelection() {
+    
+    console.log("kreisSelection")
+    if (sel_Kreis[0]) {
+        sel_Kreis[0] = 0
+        sel_Kreis[1] = 1
+    } else if (sel_Kreis[1]) {
+        sel_Kreis[1] = 0
+        sel_Kreis[2] = 1
+    } else if (sel_Kreis[2]) {
+        sel_Kreis[2] = 0
+        sel_Kreis[3] = 1
+    } else if (sel_Kreis[3]) {
+        sel_Kreis[3] = 0
+        sel_Kreis[4] = 1
+    } else if (sel_Kreis[4]) {
+        sel_Kreis[4] = 0
+        sel_Kreis[0] = 1
+    } else {
+        sel_Kreis[0] = 1
+    }
+    
+    console.log("Selection: " + sel_Kreis[0] + sel_Kreis[1] + sel_Kreis[2] + sel_Kreis[3] + sel_Kreis[4])
+    showSelLED()
+}
+
+//  -------------------------
+function showSelLED() {
+    console.log("showSelLED")
+    let i = 0
+    for (let sel of sel_Kreis.slice(0)) {
+        // print("i: "+i+" sel_Kreis"+i+ "  sel "+sel)
+        if (sel) {
+            led.plot(3, i)
+        } else {
+            led.unplot(3, i)
+        }
+        
+        i += 1
+    }
+}
+
+//  -------------------------
+function showStatus() {
+    console.log("----------")
+    console.log("showStatus")
+    console.log("remCtrl" + remCtrl)
+    let i = 0
+    for (let on1 of vor_Kreis.slice(0)) {
+        // print("on: "+on+" i1: "+ i1)
+        console.log("vor_Kreis" + (i + 1) + ": " + on1)
+        i += 1
+    }
+    i = 0
+    for (let on2 of ein_Kreis.slice(0)) {
+        console.log("ein_Kreis " + (i + 1) + " " + on2)
+        i += 1
+    }
+    i = 0
+    for (let on3 of sel_Kreis.slice(0)) {
+        console.log("sel_Kreis " + (i + 1) + " " + on3)
+        i += 1
+    }
+    i = 0
+    for (let on4 of speed_Kreis.slice(0)) {
+        console.log("speed_Kreis " + (i + 1) + " " + on4)
+        i += 1
+    }
+    console.log("speedlim1: " + speedlim1)
+    console.log("speedlim2: " + speedlim2)
+    console.log("speedlim3: " + speedlim3)
+    console.log("receive: " + receive)
+    console.log("mode: " + mode)
+}
+
+//  -------------------------
+function showRichtung() {
+    for (let i of vor_Kreis.slice(0)) {
+        if (vor_Kreis[i]) {
+            led.plot(vor_Kreis[i], 0)
+        } else {
+            led.unplot(vor_Kreis[i], 0)
+        }
+        
+    }
+}
+
+//  -------------------------
+//  Daten Senden
+function sendData() {
+    let i: number;
+    let trigger: number;
+    
+    //  trigger = 1
+    if (trigger == 1) {
+        //  Daten anzeigen
+        i = 0
+        serial.writeValue("speed", speed_Kreis[i])
+        //  Senden
+        radio.sendNumber(1)
+        radio.setTransmitSerialNumber(true)
+        radio.sendValue("speed", speed_Kreis[i])
+        trigger = 0
+    }
+    
+}
+
+function setSpeed(speed: number): number {
+    
+    let step = 10
+    if (speed_up) {
+        if (speed < 100) {
+            speed += step
+        } else {
+            speed_up = 0
+        }
+        
+    } else if (speed > 0) {
+        speed -= step
+    } else {
+        speed_up = 1
+    }
+    
+    console.log("Speed : " + speed + " up= " + speed_up)
+    return speed
 }
 
 function setRichtung() {
     let richtungDir: number;
-    if (vor_K1) {
+    if (vor_Kreis) {
         richtungDir = 1
     } else {
         richtungDir = -1
@@ -184,53 +288,23 @@ radio.onReceivedValue(function on_received_value(name: string, value: number) {
     }
     
 })
-function showSpeed() {
-    if (speed > speedlim1) {
-        led.plot(2, 0)
-        led.plot(2, 1)
-        led.plot(2, 2)
+function showSpeed(kreis: number) {
+    if (speed_Kreis[kreis] > speedlim1) {
+        led.plot(kreis, 2)
     } else {
-        led.unplot(2, 0)
-        led.plot(2, 1)
+        led.unplot(kreis, 2)
     }
     
-    if (speed > speedlim2) {
-        led.plot(2, 2)
-        led.plot(2, 3)
-        led.plot(2, 4)
+    if (speed_Kreis[kreis] > speedlim2) {
+        led.plot(kreis, 3)
     } else {
-        led.plot(2, 3)
-        led.unplot(2, 4)
+        led.unplot(kreis, 3)
     }
     
-}
-
-function set_keis_ein(kreisNr: any, on: any) {
-    let pos = [0, 0]
-    if (on) {
-        led.plot(pos[0], pos[1])
+    if (speed_Kreis[kreis] > speedlim3) {
+        led.plot(kreis, 4)
     } else {
-        led.unplot(pos[0], pos[1])
-    }
-    
-}
-
-function set_led_fahren(on2: any) {
-    let pos2 = [0, 4]
-    if (on2) {
-        led.plot(pos2[0], pos2[1])
-    } else {
-        led.unplot(pos2[0], pos2[1])
-    }
-    
-}
-
-function set_led_licht(on4: any) {
-    let pos4 = [4, 4]
-    if (on4) {
-        led.plot(pos4[0], pos4[1])
-    } else {
-        led.unplot(pos4[0], pos4[1])
+        led.unplot(kreis, 4)
     }
     
 }
@@ -238,10 +312,12 @@ function set_led_licht(on4: any) {
 //  Time Loop 1s
 //  =====================================
 loops.everyInterval(1000, function on_every_interval() {
+    let i: number;
     if (show_interval) {
+        i = 0
         console.log("===========")
         console.log("interval 1s; Zeit: " + ("" + ("" + control.millis() / 1000)))
-        console.log("speed: " + ("" + ("" + speed)))
+        console.log("speed: " + ("" + ("" + speed_Kreis[i])))
     }
     
 })
@@ -250,15 +326,14 @@ loops.everyInterval(1000, function on_every_interval() {
 basic.forever(function on_forever() {
     let changed = 0
     if (changed) {
-        setSpeed()
-        showSpeed()
+        // setSpeed()
+        showSpeed(0)
         setRichtung()
         showRichtung()
         sendData()
     } else {
-        showSpeed()
+        showSpeed(0)
         showRichtung()
-        set_led_stop(1)
     }
     
 })

@@ -32,30 +32,19 @@ radio.set_group(1)
 radio.set_transmit_power(7)
 
 remCtrl = 0
-speedAbs = 0
-speedRoh = 0
-sel_K3 = 0
-sel_K2 = 0
-sel_K1 = 0
-pos3: List[number] = []
-vor_K1 = 0
-mode = ""
-speedlim2 = 0
-speedlim1 = 0
-speed = 0
+vor_Kreis = [1, 0,1]
+ein_Kreis = [0, 0, 0]
+sel_Kreis = [0, 0, 0, 0, 0]
+speed_Kreis = [20, 40, 80]
+speed_up = 1
 receive = 0
-vor_K3 = 0
-ein_K3 = 0
-vor_K2 = 0
-ein_K2 = 0
-ein_K32 = 0
-ein_K22 = 0
-ein_K12 = 0
 
-ein_K1 = 1
-mode = "sel"
+mode = "sel"   # sel / speed / dir / ea
+
 # enum Mode {"sel", "speed"}        // JavaScript
+
 show_interval = 0
+send_request = 0
 
 basic.show_leds("""
     . . . . .
@@ -66,88 +55,191 @@ basic.show_leds("""
     """)
 basic.pause(1000)
 basic.clear_screen()
+
+print("Init")
+#showStatus()
 #
-#
-# Funktionen
-# =========================
-# 
-# -------------------------
-def showRichtung():
-    if vor_K1:
-        led.plot(2, 2)
-        led.plot(3, 2)
-        led.plot(4, 2)
-    else:
-        led.unplot(4, 2)
-        led.plot(3, 2)
-
-# -------------------------
-def set_led_stop(on3: number):
-    global pos3
-    pos3 = [2, 2]
-    if True:
-        led.plot(pos3[0], pos3[1])
-    else:
-        led.unplot(pos3[0], pos3[1])
-
-# -------------------------
-# Daten Senden
-def sendData():
-    # trigger = 1
-    if trigger == 1:
-        # Daten anzeigen
-        serial.write_value("speed", speed)
-        # Senden
-        radio.send_number(1)
-        radio.set_transmit_serial_number(True)
-        radio.send_value("speed", speed)
-        trigger = 0
-
 # Buttons
 # =====================================
 # A: select / speed +
 def on_button_pressed_a():
-    global sel_K1, sel_K2, sel_K3
+    #led.plot(0,0)
+    #led.unplot(4,4)
     if mode == "sel":
-        print("A: select")
-        if sel_K1:
-            sel_K1 = 0
-            sel_K2 = 1
-        elif sel_K2:
-            sel_K2 = 0
-            sel_K3 = 1
-        elif sel_K3:
-            sel_K3 = 0
-            sel_K1 = 1
+        print("A: select") 
+        kreisSelection()
+    elif mode == "speed":
+        print("A: speed")
+        if sel_Kreis[0]:
+            speed_Kreis[0] = setSpeed(speed_Kreis[0])
+            showSpeed(0)
+            print("speed K1: "+speed_Kreis[0])
+        if sel_Kreis[1]:
+            speed_Kreis[1] = setSpeed(speed_Kreis[1])
+            showSpeed(1)
+            print("speed K2: "+speed_Kreis[1])
+        if sel_Kreis[2]:
+            speed_Kreis[2] = setSpeed(speed_Kreis[2])
+            showSpeed(2)
+            print("speed K3: "+speed_Kreis[2])
+
+    elif mode == "dir":
+        print("A: dir")
+    elif mode == "ea":
+        print("A: ea")
+    else:
+        print("mode Fehler")
+    #showStatus()
 input.on_button_pressed(Button.A, on_button_pressed_a)
 
 # B: select / speed -
 # -------------------------
 def on_button_pressed_b():
-    print("B: stop")
+    print("B:")
+    #led.plot(4,4)
+    #led.unplot(0,0)
+    showStatus()
 input.on_button_pressed(Button.B, on_button_pressed_b)
 
-# A&B: Umschalten select/speed
+# A&B: Umschalten mode select/speed/dir/ea
 # -------------------------
 def on_button_pressed_ab():
-    print("AB: select/speed")
+    global mode
+    print("AB: select/speed/dir/ea")
+    if mode == "sel":
+        mode = "speed"
+        led.plot(4,1)
+        led.unplot(4,0)
+    elif mode == "speed":
+        mode = "dir"
+        led.plot(4,2)
+        led.unplot(4,1)
+    elif mode == "dir":
+        mode = "ea"
+        led.plot(4,3)
+        led.unplot(4,2)
+    elif mode == "ea":
+        mode = "sel"
+        led.plot(4,0)
+        led.unplot(4,3)
+    else:
+        print("fehler")
+    print(mode)
+    #showStatus()
+
 input.on_button_pressed(Button.AB, on_button_pressed_ab)
 
+#
+# Funktionen
+# =========================
+# 
+# -------------------------
+def kreisSelection():
+    global sel_Kreis
 
-def setSpeed():
-    global speedRoh, speed, speedAbs
-    speedRoh = input.rotation(Rotation.PITCH) * -1
-    if speedRoh > 0:
-        speedDir = 1
+    print("kreisSelection")
+    if sel_Kreis[0]:
+        sel_Kreis[0] = 0
+        sel_Kreis[1] = 1
+    elif sel_Kreis[1]:
+        sel_Kreis[1] = 0
+        sel_Kreis[2] = 1
+    elif sel_Kreis[2]:
+        sel_Kreis[2] = 0
+        sel_Kreis[3] = 1
+    elif sel_Kreis[3]:
+        sel_Kreis[3] = 0
+        sel_Kreis[4] = 1
+    elif sel_Kreis[4]:
+        sel_Kreis[4] = 0
+        sel_Kreis[0] = 1
     else:
-        speedDir = -1
-    # speed = Math.constrain(abs(speedRoh) - s0, 0, 100)
-    # speed = min(100, speed / 2 * 10) * speedDir
-    speed = min(100, abs(speedRoh * 1)) * speedDir
-    speedAbs = abs(speed)
+        sel_Kreis[0] = 1
+    print("Selection: "+sel_Kreis[0]+sel_Kreis[1]+sel_Kreis[2]+sel_Kreis[3]+sel_Kreis[4])
+    showSelLED()
+# -------------------------
+def showSelLED():
+    print("showSelLED")
+    i = 0
+    for sel in sel_Kreis[:]:
+        #print("i: "+i+" sel_Kreis"+i+ "  sel "+sel)
+        if sel:
+            led.plot(3, i)
+        else:
+            led.unplot(3, i)
+        i += 1
+
+# -------------------------
+def showStatus():
+    print("----------")
+    print("showStatus")
+    print("remCtrl"+remCtrl)
+    i = 0
+    for on1 in vor_Kreis[:]:
+        #print("on: "+on+" i1: "+ i1)
+        print("vor_Kreis"+(i+1)+": "+on1)
+        i += 1
+    i = 0
+    for on2 in ein_Kreis[:]:
+        print("ein_Kreis "+(i+1)+" "+on2)
+        i += 1
+    i = 0
+    for on3 in sel_Kreis[:]:
+        print("sel_Kreis "+(i+1)+" "+on3)
+        i += 1
+    i = 0
+    for on4 in speed_Kreis[:]:
+        print("speed_Kreis "+(i+1)+" "+on4)
+        i += 1
+
+    print("speedlim1: "+speedlim1)
+    print("speedlim2: "+speedlim2)
+    print("speedlim3: "+speedlim3)
+    print("receive: "+receive)
+    print("mode: "+mode)
+    
+# -------------------------
+def showRichtung():
+    for i in vor_Kreis[:]:
+        if vor_Kreis[i]:
+            led.plot(vor_Kreis[i], 0)
+        else:
+            led.unplot(vor_Kreis[i], 0)
+
+# -------------------------
+# Daten Senden
+def sendData():
+    global send_request
+    # trigger = 1
+    if trigger == 1:
+        # Daten anzeigen
+        i = 0
+        serial.write_value("speed", speed_Kreis[i])
+        # Senden
+        radio.send_number(1)
+        radio.set_transmit_serial_number(True)
+        radio.send_value("speed", speed_Kreis[i])
+        trigger = 0
+
+
+def setSpeed(speed):
+    global speed_Kreis, speed_up
+    step = 10
+    if speed_up:
+        if speed < 100:
+            speed += step
+        else:
+            speed_up = 0
+    else:
+        if speed > 0:
+            speed -= step
+        else:
+            speed_up = 1
+    print("Speed : "+speed+" up= "+speed_up)
+    return speed
 
 def setRichtung():
-    if vor_K1:
+    if vor_Kreis:
         richtungDir = 1
     else:
         richtungDir = -1
@@ -166,49 +258,28 @@ def on_received_value(name, value):
         pass
 radio.on_received_value(on_received_value)
 
-def showSpeed():
-    if speed > speedlim1:
-        led.plot(2, 0)
-        led.plot(2, 1)
-        led.plot(2, 2)
+def showSpeed(kreis):
+    if speed_Kreis[kreis] > speedlim1:
+        led.plot(kreis, 2)
     else:
-        led.unplot(2, 0)
-        led.plot(2, 1)
-    if speed > speedlim2:
-        led.plot(2, 2)
-        led.plot(2, 3)
-        led.plot(2, 4)
+        led.unplot(kreis, 2)
+    if speed_Kreis[kreis] > speedlim2:
+        led.plot(kreis, 3)
     else:
-        led.plot(2, 3)
-        led.unplot(2, 4)
-
-
-def set_keis_ein(kreisNr: any, on: any):
-    pos = [0, 0]
-    if on:
-        led.plot(pos[0], pos[1])
+        led.unplot(kreis, 3)
+    if speed_Kreis[kreis] > speedlim3:
+        led.plot(kreis, 4)
     else:
-        led.unplot(pos[0], pos[1])
-def set_led_fahren(on2: any):
-    pos2 = [0, 4]
-    if on2:
-        led.plot(pos2[0], pos2[1])
-    else:
-        led.unplot(pos2[0], pos2[1])
-def set_led_licht(on4: any):
-    pos4 = [4, 4]
-    if on4:
-        led.plot(pos4[0], pos4[1])
-    else:
-        led.unplot(pos4[0], pos4[1])
+        led.unplot(kreis, 4)
 
 # Time Loop 1s
 # =====================================
 def on_every_interval():
     if show_interval:
+        i = 0
         print("===========")
         print("interval 1s; Zeit: " + ("" + str(control.millis() / 1000)))
-        print("speed: " + ("" + str(speed)))
+        print("speed: " + ("" + str(speed_Kreis[i] )))
 loops.every_interval(1000, on_every_interval)
 
 # Main Loop
@@ -216,13 +287,12 @@ loops.every_interval(1000, on_every_interval)
 def on_forever():
     changed = 0
     if changed:
-        setSpeed()
-        showSpeed()
+        #setSpeed()
+        showSpeed(0)
         setRichtung()
         showRichtung()
         sendData()
     else:
-        showSpeed()
+        showSpeed(0)
         showRichtung()
-        set_led_stop(1)
 basic.forever(on_forever)
