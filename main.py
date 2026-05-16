@@ -29,6 +29,7 @@ speedlim3 = 90
 #
 # Init
 # =========================
+radio.on()
 radio.set_group(1)
 radio.set_transmit_power(7)
 
@@ -76,6 +77,7 @@ def on_button_pressed_a():
                 speed_Kreis[kreis] = setSpeed(speed_Kreis[kreis])
                 print("speed K"+(kreis+1)+": "+speed_Kreis[kreis])
         showSpeedLEDs()
+        print("Send Speed")
         radio.send_value("speed_K1", speed_Kreis[0])
         radio.send_value("speed_K2", speed_Kreis[1])
         radio.send_value("speed_K3", speed_Kreis[2])
@@ -96,6 +98,7 @@ def on_button_pressed_a():
         radio.send_value("vor_K1", vor_Kreis[0])
         radio.send_value("vor_K2", vor_Kreis[1])
         radio.send_value("vor_K3", vor_Kreis[2])
+        print("Send direction")    
     elif mode == "ea":
         print("A: ea")
         for kreis in range(0,3):
@@ -107,6 +110,7 @@ def on_button_pressed_a():
                     ein_Kreis[kreis] = 0
                     led.unplot(kreis,1)
                 print("ein K"+(kreis+1)+": "+ein_Kreis[kreis])
+        print("Send Ein")
         radio.send_value("ein_K1", ein_Kreis[0])
         radio.send_value("ein_K2", ein_Kreis[1])
         radio.send_value("ein_K3", ein_Kreis[2])
@@ -120,6 +124,10 @@ def on_button_pressed_b():
     print("B:")
     #led.plot(4,4)
     #led.unplot(0,0)
+    print("Radio send")
+    radio.send_number(2)
+    radio.send_value("name", 0)
+    radio.send_string("xxxx")
     showStatus()
 input.on_button_pressed(Button.B, on_button_pressed_b)
 

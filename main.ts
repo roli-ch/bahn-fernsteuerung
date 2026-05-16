@@ -28,6 +28,7 @@ let speedlim3 = 90
 // 
 //  Init
 //  =========================
+radio.on()
 radio.setGroup(1)
 radio.setTransmitPower(7)
 let remCtrl = 0
@@ -75,6 +76,7 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
             
         }
         showSpeedLEDs()
+        console.log("Send Speed")
         radio.sendValue("speed_K1", speed_Kreis[0])
         radio.sendValue("speed_K2", speed_Kreis[1])
         radio.sendValue("speed_K3", speed_Kreis[2])
@@ -99,6 +101,7 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
         radio.sendValue("vor_K1", vor_Kreis[0])
         radio.sendValue("vor_K2", vor_Kreis[1])
         radio.sendValue("vor_K3", vor_Kreis[2])
+        console.log("Send direction")
     } else if (mode == "ea") {
         console.log("A: ea")
         for (kreis = 0; kreis < 3; kreis++) {
@@ -115,6 +118,7 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
             }
             
         }
+        console.log("Send Ein")
         radio.sendValue("ein_K1", ein_Kreis[0])
         radio.sendValue("ein_K2", ein_Kreis[1])
         radio.sendValue("ein_K3", ein_Kreis[2])
@@ -129,6 +133,10 @@ input.onButtonPressed(Button.B, function on_button_pressed_b() {
     console.log("B:")
     // led.plot(4,4)
     // led.unplot(0,0)
+    console.log("Radio send")
+    radio.sendNumber(2)
+    radio.sendValue("name", 0)
+    radio.sendString("xxxx")
     showStatus()
 })
 //  A&B: Umschalten mode select/speed/dir/ea
