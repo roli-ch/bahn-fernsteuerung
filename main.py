@@ -1,6 +1,6 @@
 # Programm name:    bahn-fernsteuerung
 # Sender mit Rotation
-# V1 Basis  13.5.2026
+# V1 Basis  16.5.2026
 #
 # LED Anzeigen: (x,y)
 # vor_K1    0,0         Senden
@@ -33,10 +33,10 @@ radio.set_group(1)
 radio.set_transmit_power(7)
 
 remCtrl = 0     # Gegenstation ist für empfang freigegeben azeige led(4.4)
-vor_Kreis = [1, 0,1]
+vor_Kreis = [0, 0, 0]
 ein_Kreis = [0, 0, 0]
 sel_Kreis = [0, 0, 0, 0, 0]
-speed_Kreis = [20, 40, 80]
+speed_Kreis = [0, 0, 0]
 speed_up = 1
 receive = 0
 
@@ -67,7 +67,7 @@ def on_button_pressed_a():
     #led.plot(0,0)
     #led.unplot(4,4)
     if mode == "sel":
-        print("A: select") 
+        print("A: select")
         kreisSelection()
     elif mode == "speed":
         print("A: speed")
@@ -148,7 +148,7 @@ input.on_button_pressed(Button.AB, on_button_pressed_ab)
 #
 # Funktionen
 # =========================
-# 
+#
 # -------------------------
 def kreisSelection():
     global sel_Kreis
@@ -222,7 +222,7 @@ def showStatus():
     print("----------")
     print("showStatus")
     print("remCtrl"+remCtrl)
-    for kreis in range(0,3):      
+    for kreis in range(0,3):
         print("sel_Kreis"+(kreis+1)+": "+sel_Kreis[kreis])
         print("vor_Kreis"+(kreis+1)+": "+vor_Kreis[kreis])
         print("ein_Kreis"+(kreis+1)+": "+ein_Kreis[kreis])
@@ -235,21 +235,36 @@ def showStatus():
     
 # -------------------------
 # Daten Empfangen
+# set_led_remote(0)
 
 def on_received_value(name, value):
     global remCtrl
     serial.write_value("daten empfangen: " + name, value)
+    
+    # Kreis 1
+    idx = 0
+    if name == "ein_K1":
+        ein_Kreis[idx] = value
+    elif name == "vor_K1":
+        vor_Kreis[idx] = value
+    elif name == "u_soll_K1":
+        speed_Kreis[idx] = value
+        
+    showKreisLEDs()
+    # remCtrl
     if name == "remCtrl":
         remCtrl = value
-    # led remCtrl blinkt, wenn Daten Empfangen
     if remCtrl:
-        led.unplot(4, 4)
-        pause(1000)
         led.plot(4, 4)
     else:
-        led.plot(4, 4)
-        pause(1000)
         led.unplot(4, 4)
+    # led remCtrl blinkt, wenn Daten Empfangen
+    for i in range(0,5):
+        led.plot(4, 4)
+        pause(100)
+        led.unplot(4, 4)
+        pause(100)
+
 radio.on_received_value(on_received_value)
 
 # -------------------------
@@ -266,7 +281,6 @@ def sendData():
         radio.set_transmit_serial_number(True)
         radio.send_value("speed", speed_Kreis[i])
         trigger = 0
-
 
 def setSpeed(speed):
     global speed_Kreis, speed_up

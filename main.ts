@@ -1,6 +1,6 @@
 //  Programm name:    bahn-fernsteuerung
 //  Sender mit Rotation
-//  V1 Basis  13.5.2026
+//  V1 Basis  16.5.2026
 // 
 //  LED Anzeigen: (x,y)
 //  vor_K1    0,0         Senden
@@ -32,10 +32,10 @@ radio.setGroup(1)
 radio.setTransmitPower(7)
 let remCtrl = 0
 //  Gegenstation ist für empfang freigegeben azeige led(4.4)
-let vor_Kreis = [1, 0, 1]
+let vor_Kreis = [0, 0, 0]
 let ein_Kreis = [0, 0, 0]
 let sel_Kreis = [0, 0, 0, 0, 0]
-let speed_Kreis = [20, 40, 80]
+let speed_Kreis = [0, 0, 0]
 let speed_up = 1
 let receive = 0
 let mode = "sel"
@@ -153,7 +153,7 @@ input.onButtonPressed(Button.AB, function on_button_pressed_ab() {
 // 
 //  Funktionen
 //  =========================
-//  
+// 
 //  -------------------------
 function kreisSelection() {
     
@@ -264,24 +264,39 @@ function showStatus() {
 
 //  -------------------------
 //  Daten Empfangen
+//  set_led_remote(0)
 radio.onReceivedValue(function on_received_value(name: string, value: number) {
     
     serial.writeValue("daten empfangen: " + name, value)
+    //  Kreis 1
+    let idx = 0
+    if (name == "ein_K1") {
+        ein_Kreis[idx] = value
+    } else if (name == "vor_K1") {
+        vor_Kreis[idx] = value
+    } else if (name == "u_soll_K1") {
+        speed_Kreis[idx] = value
+    }
+    
+    showKreisLEDs()
+    //  remCtrl
     if (name == "remCtrl") {
         remCtrl = value
     }
     
-    //  led remCtrl blinkt, wenn Daten Empfangen
     if (remCtrl) {
-        led.unplot(4, 4)
-        pause(1000)
         led.plot(4, 4)
     } else {
-        led.plot(4, 4)
-        pause(1000)
         led.unplot(4, 4)
     }
     
+    //  led remCtrl blinkt, wenn Daten Empfangen
+    for (let i = 0; i < 5; i++) {
+        led.plot(4, 4)
+        pause(100)
+        led.unplot(4, 4)
+        pause(100)
+    }
 })
 //  -------------------------
 //  Daten Senden
