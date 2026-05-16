@@ -76,7 +76,9 @@ def on_button_pressed_a():
                 speed_Kreis[kreis] = setSpeed(speed_Kreis[kreis])
                 print("speed K"+(kreis+1)+": "+speed_Kreis[kreis])
         showSpeedLEDs()
-
+        radio.send_value("speed_K1", speed_Kreis[0])
+        radio.send_value("speed_K2", speed_Kreis[1])
+        radio.send_value("speed_K3", speed_Kreis[2])
     elif mode == "dir":
         print("A: dir")
         for kreis in range(0,3):
@@ -91,7 +93,9 @@ def on_button_pressed_a():
                     vor_Kreis[kreis] = 0
                     led.unplot(kreis,0)
                 print("vor K"+(kreis+1)+": "+vor_Kreis[kreis])
-
+        radio.send_value("vor_K1", vor_Kreis[0])
+        radio.send_value("vor_K2", vor_Kreis[1])
+        radio.send_value("vor_K3", vor_Kreis[2])
     elif mode == "ea":
         print("A: ea")
         for kreis in range(0,3):
@@ -103,7 +107,9 @@ def on_button_pressed_a():
                     ein_Kreis[kreis] = 0
                     led.unplot(kreis,1)
                 print("ein K"+(kreis+1)+": "+ein_Kreis[kreis])
-
+        radio.send_value("ein_K1", ein_Kreis[0])
+        radio.send_value("ein_K2", ein_Kreis[1])
+        radio.send_value("ein_K3", ein_Kreis[2])
     else:
         print("mode Fehler")
 input.on_button_pressed(Button.A, on_button_pressed_a)
@@ -239,7 +245,7 @@ def showStatus():
 
 def on_received_value(name, value):
     global remCtrl
-    serial.write_value("daten empfangen: " + name, value)
+    print("daten empfangen: " +name+ " = "+value)
     
     # Kreis 1
     idx = 0
@@ -247,7 +253,23 @@ def on_received_value(name, value):
         ein_Kreis[idx] = value
     elif name == "vor_K1":
         vor_Kreis[idx] = value
-    elif name == "u_soll_K1":
+    elif name == "u_ist_K1":
+        speed_Kreis[idx] = value
+    # Kreis 2
+    idx = 1
+    if name == "ein_K2":
+        ein_Kreis[idx] = value
+    elif name == "vor_K2":
+        vor_Kreis[idx] = value
+    elif name == "u_ist_K2":
+        speed_Kreis[idx] = value
+    # Kreis 3
+    idx = 2
+    if name == "ein_K3":
+        ein_Kreis[idx] = value
+    elif name == "vor_K3":
+        vor_Kreis[idx] = value
+    elif name == "u_ist_K3":
         speed_Kreis[idx] = value
         
     showKreisLEDs()
@@ -271,16 +293,27 @@ radio.on_received_value(on_received_value)
 # Daten Senden
 def sendData():
     global send_request
-    # trigger = 1
-    if trigger == 1:
-        # Daten anzeigen
+    if send_request == 1:
+        # Daten senden Kreis 1
         i = 0
         serial.write_value("speed", speed_Kreis[i])
-        # Senden
-        radio.send_number(1)
-        radio.set_transmit_serial_number(True)
-        radio.send_value("speed", speed_Kreis[i])
-        trigger = 0
+        #radio.send_number(1)
+        #radio.set_transmit_serial_number(True)
+        radio.send_value("speed_K1", speed_Kreis[i])
+        # Daten senden Kreis 1
+        i = 1
+        serial.write_value("speed_K2", speed_Kreis[i])
+        #radio.send_number(2)
+        #radio.set_transmit_serial_number(True)
+        radio.send_value("speed_K2", speed_Kreis[i])
+        # Daten senden Kreis 1
+        i = 2
+        serial.write_value("speed_K3", speed_Kreis[i])
+        #radio.send_number(2)
+        #radio.set_transmit_serial_number(True)
+        radio.send_value("speed_K3", speed_Kreis[i])
+
+        send_request = 0
 
 def setSpeed(speed):
     global speed_Kreis, speed_up

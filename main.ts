@@ -75,6 +75,9 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
             
         }
         showSpeedLEDs()
+        radio.sendValue("speed_K1", speed_Kreis[0])
+        radio.sendValue("speed_K2", speed_Kreis[1])
+        radio.sendValue("speed_K3", speed_Kreis[2])
     } else if (mode == "dir") {
         console.log("A: dir")
         for (kreis = 0; kreis < 3; kreis++) {
@@ -93,6 +96,9 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
             }
             
         }
+        radio.sendValue("vor_K1", vor_Kreis[0])
+        radio.sendValue("vor_K2", vor_Kreis[1])
+        radio.sendValue("vor_K3", vor_Kreis[2])
     } else if (mode == "ea") {
         console.log("A: ea")
         for (kreis = 0; kreis < 3; kreis++) {
@@ -109,6 +115,9 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
             }
             
         }
+        radio.sendValue("ein_K1", ein_Kreis[0])
+        radio.sendValue("ein_K2", ein_Kreis[1])
+        radio.sendValue("ein_K3", ein_Kreis[2])
     } else {
         console.log("mode Fehler")
     }
@@ -267,14 +276,34 @@ function showStatus() {
 //  set_led_remote(0)
 radio.onReceivedValue(function on_received_value(name: string, value: number) {
     
-    serial.writeValue("daten empfangen: " + name, value)
+    console.log("daten empfangen: " + name + " = " + value)
     //  Kreis 1
     let idx = 0
     if (name == "ein_K1") {
         ein_Kreis[idx] = value
     } else if (name == "vor_K1") {
         vor_Kreis[idx] = value
-    } else if (name == "u_soll_K1") {
+    } else if (name == "u_ist_K1") {
+        speed_Kreis[idx] = value
+    }
+    
+    //  Kreis 2
+    idx = 1
+    if (name == "ein_K2") {
+        ein_Kreis[idx] = value
+    } else if (name == "vor_K2") {
+        vor_Kreis[idx] = value
+    } else if (name == "u_ist_K2") {
+        speed_Kreis[idx] = value
+    }
+    
+    //  Kreis 3
+    idx = 2
+    if (name == "ein_K3") {
+        ein_Kreis[idx] = value
+    } else if (name == "vor_K3") {
+        vor_Kreis[idx] = value
+    } else if (name == "u_ist_K3") {
         speed_Kreis[idx] = value
     }
     
@@ -302,18 +331,27 @@ radio.onReceivedValue(function on_received_value(name: string, value: number) {
 //  Daten Senden
 function sendData() {
     let i: number;
-    let trigger: number;
     
-    //  trigger = 1
-    if (trigger == 1) {
-        //  Daten anzeigen
+    if (send_request == 1) {
+        //  Daten senden Kreis 1
         i = 0
         serial.writeValue("speed", speed_Kreis[i])
-        //  Senden
-        radio.sendNumber(1)
-        radio.setTransmitSerialNumber(true)
-        radio.sendValue("speed", speed_Kreis[i])
-        trigger = 0
+        // radio.send_number(1)
+        // radio.set_transmit_serial_number(True)
+        radio.sendValue("speed_K1", speed_Kreis[i])
+        //  Daten senden Kreis 1
+        i = 1
+        serial.writeValue("speed_K2", speed_Kreis[i])
+        // radio.send_number(2)
+        // radio.set_transmit_serial_number(True)
+        radio.sendValue("speed_K2", speed_Kreis[i])
+        //  Daten senden Kreis 1
+        i = 2
+        serial.writeValue("speed_K3", speed_Kreis[i])
+        // radio.send_number(2)
+        // radio.set_transmit_serial_number(True)
+        radio.sendValue("speed_K3", speed_Kreis[i])
+        send_request = 0
     }
     
 }
