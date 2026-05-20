@@ -291,11 +291,11 @@ def showSelLED():
 
 # -------------------------
 def showSpeedLED(kreis, speed):
-    br_max = 100
+    br_max = 50
     br1 = 0
     br2 = 0
     br3 = 0
-    if speed > 0:
+    if speed >= 0:
         br1 = min((speed / speedlim2),1) * br_max
         led.plot_brightness(kreis, 2, br1)
         led.plot_brightness(kreis, 3, 0)
@@ -365,7 +365,7 @@ def showStatus():
     
 def setSpeed(speed):
     global speed_Kreis, speed_up
-    step = 5
+    step = 10
     if speed_up:
         if speed < 100:
             speed += step

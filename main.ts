@@ -327,11 +327,11 @@ function showSelLED() {
 
 //  -------------------------
 function showSpeedLED(kreis: number, speed: number) {
-    let br_max = 100
+    let br_max = 50
     let br1 = 0
     let br2 = 0
     let br3 = 0
-    if (speed > 0) {
+    if (speed >= 0) {
         br1 = Math.min(speed / speedlim2, 1) * br_max
         led.plotBrightness(kreis, 2, br1)
         led.plotBrightness(kreis, 3, 0)
@@ -420,7 +420,7 @@ function showStatus() {
 
 function setSpeed(speed: number): number {
     
-    let step = 5
+    let step = 10
     if (speed_up) {
         if (speed < 100) {
             speed += step
