@@ -1,6 +1,6 @@
 //  Programm name:    bahn-fernsteuerung
 //  Sender mit Rotation
-//  V1 Basis  16.5.2026
+//  V1 Basis  20.5.2026
 // 
 //  LED Anzeigen: (x,y)
 //  vor_K1    0,0         Senden
@@ -22,9 +22,8 @@
 //  select                Button A&B
 //  Konstanten
 //  =========================
-let speedlim1 = 30
-let speedlim2 = 60
-let speedlim3 = 90
+let speedlim1 = 40
+let speedlim2 = 70
 // 
 //  Init
 //  =========================
@@ -53,6 +52,7 @@ basic.showLeds(`
     `)
 basic.pause(1000)
 basic.clearScreen()
+kreisSelection()
 console.log("Init")
 // showStatus()
 // 
@@ -314,7 +314,7 @@ function showSelLED() {
     console.log("showSelLED")
     let i = 0
     for (let sel of sel_Kreis.slice(0)) {
-        // print("i: "+i+" sel_Kreis"+i+ "  sel "+sel)
+        console.log("i: " + i + " sel_Kreis" + i + "  sel " + sel)
         if (sel) {
             led.plot(3, i)
         } else {
@@ -326,26 +326,55 @@ function showSelLED() {
 }
 
 //  -------------------------
+function showSpeedLED(kreis: number, speed: number) {
+    let br_max = 100
+    let br1 = 0
+    let br2 = 0
+    let br3 = 0
+    if (speed > 0) {
+        br1 = Math.min(speed / speedlim2, 1) * br_max
+        led.plotBrightness(kreis, 2, br1)
+        led.plotBrightness(kreis, 3, 0)
+        led.plotBrightness(kreis, 4, 0)
+        console.log("K" + (kreis + 1) + " br1: " + br1)
+    }
+    
+    if (speed > speedlim1) {
+        br2 = Math.min((speed - speedlim1) / (speedlim2 - speedlim1), 1) * br_max
+        led.plotBrightness(kreis, 2, br_max)
+        led.plotBrightness(kreis, 3, br2)
+        led.plotBrightness(kreis, 4, 0)
+        console.log("K" + (kreis + 1) + " br2: " + br2)
+    }
+    
+    if (speed > speedlim2) {
+        br3 = Math.min((speed - speedlim2) / (100 - speedlim2), 1) * br_max
+        led.plotBrightness(kreis, 2, br_max)
+        led.plotBrightness(kreis, 3, br_max)
+        led.plotBrightness(kreis, 4, br3)
+        console.log("K" + (kreis + 1) + " br3: " + br3)
+    }
+    
+}
+
 function showSpeedLEDs() {
     for (let kreis = 0; kreis < 3; kreis++) {
-        if (speed_Kreis[kreis] > speedlim1) {
-            led.plot(kreis, 2)
-        } else {
+        showSpeedLED(kreis, speed_Kreis[kreis])
+        /** 
+        if speed_Kreis[kreis] > speedlim1:
+            led.plot_brightness(kreis, 2, 25)
+        else:
             led.unplot(kreis, 2)
-        }
-        
-        if (speed_Kreis[kreis] > speedlim2) {
+        if speed_Kreis[kreis] > speedlim2:
             led.plot(kreis, 3)
-        } else {
+        else:
             led.unplot(kreis, 3)
-        }
-        
-        if (speed_Kreis[kreis] > speedlim3) {
+        if speed_Kreis[kreis] > speedlim3:
             led.plot(kreis, 4)
-        } else {
+        else:
             led.unplot(kreis, 4)
-        }
-        
+
+ */
     }
 }
 
@@ -385,14 +414,13 @@ function showStatus() {
     }
     console.log("speedlim1: " + speedlim1)
     console.log("speedlim2: " + speedlim2)
-    console.log("speedlim3: " + speedlim3)
     console.log("receive: " + receive)
     console.log("mode: " + mode)
 }
 
 function setSpeed(speed: number): number {
     
-    let step = 10
+    let step = 5
     if (speed_up) {
         if (speed < 100) {
             speed += step
@@ -442,6 +470,7 @@ loops.everyInterval(1000, function on_every_interval() {
 })
 //  Main Loop
 //  =====================================
+// showSpeedLEDs()
 // showRichtung()
 basic.forever(function on_forever() {
     let changed = 0
@@ -452,7 +481,7 @@ basic.forever(function on_forever() {
     } else {
         // showRichtung()
         // sendData()
-        showSpeedLEDs()
+        
     }
     
 })

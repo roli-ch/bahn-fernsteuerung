@@ -1,6 +1,6 @@
 # Programm name:    bahn-fernsteuerung
 # Sender mit Rotation
-# V1 Basis  16.5.2026
+# V1 Basis  20.5.2026
 #
 # LED Anzeigen: (x,y)
 # vor_K1    0,0         Senden
@@ -23,9 +23,8 @@
 
 # Konstanten
 # =========================
-speedlim1 = 30
-speedlim2 = 60
-speedlim3 = 90
+speedlim1 = 40
+speedlim2 = 70
 #
 # Init
 # =========================
@@ -57,6 +56,8 @@ basic.show_leds("""
     """)
 basic.pause(1000)
 basic.clear_screen()
+
+kreisSelection()
 
 print("Init")
 #showStatus()
@@ -255,7 +256,6 @@ def sendData():
 # -------------------------
 def kreisSelection():
     global sel_Kreis
-
     print("kreisSelection")
     if sel_Kreis[0]:
         sel_Kreis[0] = 0
@@ -282,7 +282,7 @@ def showSelLED():
     print("showSelLED")
     i = 0
     for sel in sel_Kreis[:]:
-        #print("i: "+i+" sel_Kreis"+i+ "  sel "+sel)
+        print("i: "+i+" sel_Kreis"+i+ "  sel "+sel)
         if sel:
             led.plot(3, i)
         else:
@@ -290,10 +290,38 @@ def showSelLED():
         i += 1
 
 # -------------------------
+def showSpeedLED(kreis, speed):
+    br_max = 100
+    br1 = 0
+    br2 = 0
+    br3 = 0
+    if speed > 0:
+        br1 = min((speed / speedlim2),1) * br_max
+        led.plot_brightness(kreis, 2, br1)
+        led.plot_brightness(kreis, 3, 0)
+        led.plot_brightness(kreis, 4, 0)
+        print("K"+(kreis+1)+" br1: "+br1)
+
+    if speed > speedlim1:
+        br2 = min((speed-speedlim1) / (speedlim2-speedlim1),1) * br_max
+        led.plot_brightness(kreis, 2, br_max)
+        led.plot_brightness(kreis, 3, br2)
+        led.plot_brightness(kreis, 4, 0)
+        print("K"+(kreis+1)+" br2: "+br2)
+
+    if speed > speedlim2:
+        br3 = min((speed-speedlim2) / (100-speedlim2),1) * br_max
+        led.plot_brightness(kreis, 2, br_max)
+        led.plot_brightness(kreis, 3, br_max)
+        led.plot_brightness(kreis, 4, br3)
+        print("K"+(kreis+1)+" br3: "+br3)
+
 def showSpeedLEDs():
     for kreis in range(0,3):
+        showSpeedLED(kreis, speed_Kreis[kreis])
+        """
         if speed_Kreis[kreis] > speedlim1:
-            led.plot(kreis, 2)
+            led.plot_brightness(kreis, 2, 25)
         else:
             led.unplot(kreis, 2)
         if speed_Kreis[kreis] > speedlim2:
@@ -304,7 +332,7 @@ def showSpeedLEDs():
             led.plot(kreis, 4)
         else:
             led.unplot(kreis, 4)
-
+"""
 # -------------------------
 def showKreisLEDs():
     # dir, direction
@@ -332,13 +360,12 @@ def showStatus():
         print("speed_Kreis"+(kreis+1)+": "+speed_Kreis[kreis])
     print("speedlim1: "+speedlim1)
     print("speedlim2: "+speedlim2)
-    print("speedlim3: "+speedlim3)
     print("receive: "+receive)
     print("mode: "+mode)
     
 def setSpeed(speed):
     global speed_Kreis, speed_up
-    step = 10
+    step = 5
     if speed_up:
         if speed < 100:
             speed += step
@@ -385,6 +412,7 @@ def on_forever():
         #showRichtung()
         #sendData()
     else:
-        showSpeedLEDs()
+        pass
+        #showSpeedLEDs()
         #showRichtung()
 basic.forever(on_forever)
