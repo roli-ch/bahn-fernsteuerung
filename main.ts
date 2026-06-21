@@ -1,6 +1,7 @@
 //  Programm name:    bahn-fernsteuerung
 //  Sender mit Rotation
 //  V1 Basis  20.5.2026
+//  V2 21.6.2026
 // 
 //  LED Anzeigen: (x,y)
 //  vor_K1    0,0         Senden
@@ -22,16 +23,20 @@
 //  select                Button A&B
 /** 
 Bedienung:
-    Button B
-        vor ein >30 >60 >90
-K1 LED  0,0 1,0 2,0 3,0 3,0
-K2 LED  0,1 1,1 2,1 3,1 3,1
-K3 LED  0,2 1,2 2,2 3,2 3,2
-        sel sp  vor ea  x  
-Mode    0,3 1,3 2,3 3,3 3,3
-                        rem
-Div     0,4 1,4 2,4 3,4 3,4
-    Button A
+    Button B: x 
+
+        sel sp  vr  ea  rem 
+mode    0,0 1,0 2,0 3,0 3,0
+        K1  K2  K3  
+sel     0,1 1,1 2,1 3,1 3,1
+        vr  ea  >30 >60 >90
+K3      2,0 2,1 2,2 2,3 2,4
+K2      1,0 1,1 1,2 1,3 1,4
+K1      0,0 0,1 0,2 0,3 0,4
+    
+    Button A: sel, speed, vr, ea 
+
+    Button AB: mode: select/speed/dir/ea
 
  */
 //  Konstanten
@@ -48,7 +53,7 @@ let remCtrl = 0
 //  Gegenstation ist für empfang freigegeben azeige led(4.4)
 let vor_Kreis = [0, 0, 0]
 let ein_Kreis = [0, 0, 0]
-let sel_Kreis = [0, 0, 0, 0, 0]
+let sel_Kreis = [0, 0, 0]
 let speed_Kreis = [0, 0, 0]
 let speed_up = 1
 let receive = 0
@@ -308,18 +313,12 @@ function kreisSelection() {
         sel_Kreis[2] = 1
     } else if (sel_Kreis[2]) {
         sel_Kreis[2] = 0
-        sel_Kreis[3] = 1
-    } else if (sel_Kreis[3]) {
-        sel_Kreis[3] = 0
-        sel_Kreis[4] = 1
-    } else if (sel_Kreis[4]) {
-        sel_Kreis[4] = 0
         sel_Kreis[0] = 1
     } else {
         sel_Kreis[0] = 1
     }
     
-    console.log("Selection: " + sel_Kreis[0] + sel_Kreis[1] + sel_Kreis[2] + sel_Kreis[3] + sel_Kreis[4])
+    console.log("Selection: " + sel_Kreis[0] + sel_Kreis[1] + sel_Kreis[2])
     showSelLED()
 }
 
