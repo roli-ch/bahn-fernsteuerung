@@ -20,6 +20,19 @@
 # change selection      Button A
 # stop                  Button B
 # select                Button A&B
+"""
+Bedienung:
+    Button B
+        vor ein >30 >60 >90
+K1 LED  0,0 1,0 2,0 3,0 3,0
+K2 LED  0,1 1,1 2,1 3,1 3,1
+K3 LED  0,2 1,2 2,2 3,2 3,2
+        sel sp  vor ea  x  
+Mode    0,3 1,3 2,3 3,3 3,3
+                        rem
+Div     0,4 1,4 2,4 3,4 3,4
+    Button A
+"""
 
 # Konstanten
 # =========================
