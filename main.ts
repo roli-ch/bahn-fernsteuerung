@@ -113,7 +113,7 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
     } else if (mode == "dir") {
         console.log("A: Send direction")
         for (kreis = 0; kreis < 3; kreis++) {
-            console.log("kreis: " + kreis)
+            // print("kreis: "+kreis)
             if (selKreis[kreis]) {
                 console.log("sel: " + kreis)
                 if (vorKreis[kreis] == 0) {
@@ -124,7 +124,7 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
                     led.unplot(kreis, 0)
                 }
                 
-                console.log("vor K" + (kreis + 1) + ": " + vorKreis[kreis])
+                console.log("vorK" + (kreis + 1) + ": " + vorKreis[kreis])
                 if (kreis == 0) {
                     radio.sendValue("vorK1", vorKreis[0])
                 }
@@ -152,7 +152,7 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
                     led.unplot(kreis, 1)
                 }
                 
-                console.log("ein K" + (kreis + 1) + ": " + einKreis[kreis])
+                console.log("einK" + (kreis + 1) + ": " + einKreis[kreis])
                 if (kreis == 0) {
                     radio.sendValue("einK1", einKreis[0])
                 }

@@ -109,8 +109,7 @@ def on_button_pressed_a():
     elif mode == "dir":
         print("A: Send direction")    
         for kreis in range(0,3):
-            print("kreis: "+kreis)
-
+            #print("kreis: "+kreis)
             if selKreis[kreis]:
                 print("sel: "+kreis)
                 if vorKreis[kreis] == 0:
@@ -119,7 +118,7 @@ def on_button_pressed_a():
                 else:
                     vorKreis[kreis] = 0
                     led.unplot(kreis,0)
-                print("vor K"+(kreis+1)+": "+vorKreis[kreis])
+                print("vorK"+(kreis+1)+": "+vorKreis[kreis])
                 if kreis == 0:
                     radio.send_value("vorK1", vorKreis[0])
                 if kreis == 1:
@@ -137,7 +136,7 @@ def on_button_pressed_a():
                 else:
                     einKreis[kreis] = 0
                     led.unplot(kreis,1)
-                print("ein K"+(kreis+1)+": "+einKreis[kreis])
+                print("einK"+(kreis+1)+": "+einKreis[kreis])
                 if kreis == 0:
                     radio.send_value("einK1", einKreis[0])
                 if kreis == 1:
