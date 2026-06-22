@@ -1,22 +1,22 @@
 //  Programm name:    bahn-fernsteuerung
 //  Sender mit Rotation
 //  V1 Basis  20.5.2026
-//  V2 21.6.2026
+//  V2 22.6.2026
 // 
 //  LED Anzeigen: (x,y)
-//  vor_K1    0,0         Senden
-//  vor_K1    1,0         Senden
-//  vor_K1    2,0         Senden
-//  ein_K1    0,1         Senden
-//  ein_K1    1,1         Senden
-//  ein_K1    2,1         Senden
+//  vorK1    0,0         Senden
+//  vorK1    1,0         Senden
+//  vorK1    2,0         Senden
+//  einK1    0,1         Senden
+//  einK1    1,1         Senden
+//  einK1    2,1         Senden
 //  Speed K1  0,2 - 0,4   Senden
 //  Speed K2  1,2 - 1,4   Senden
 //  Speed K3  2,2 - 2,4   Senden
 //  Remote    4,4         Empfangen
-//  sel_K1    3,0
-//  sel_K2    3,1
-//  sel_K2    3,2
+//  selK1    3,0
+//  selK2    3,1
+//  selK2    3,2
 //  sel_speed 3,4
 //  change selection      Button A
 //  stop                  Button B
@@ -41,8 +41,8 @@ K1      0,0 0,1 0,2 0,3 0,4
  */
 //  Konstanten
 //  =========================
-let speedlim1 = 40
-let speedlim2 = 70
+let speedLim1 = 40
+let speedLim2 = 70
 // 
 //  Init
 //  =========================
@@ -51,17 +51,17 @@ radio.setGroup(1)
 radio.setTransmitPower(7)
 let remCtrl = 0
 //  Gegenstation ist für empfang freigegeben azeige led(4.4)
-let vor_Kreis = [0, 0, 0]
-let ein_Kreis = [0, 0, 0]
-let sel_Kreis = [0, 0, 0]
-let speed_Kreis = [0, 0, 0]
-let speed_up = 1
+let vorKreis = [0, 0, 0]
+let einKreis = [0, 0, 0]
+let selKreis = [0, 0, 0]
+let speedKreis = [0, 0, 0]
+let speedUp = 1
 let receive = 0
 let mode = "sel"
 //  sel / speed / dir / ea
 //  enum Mode {"sel", "speed"}        // JavaScript
-let show_interval = 0
-let send_request = 0
+let showInterval = 0
+let sendRequest = 0
 basic.showLeds(`
     . . . . .
     . # # # .
@@ -88,22 +88,22 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
     } else if (mode == "speed") {
         console.log("A: Send speed")
         for (kreis = 0; kreis < 3; kreis++) {
-            if (sel_Kreis[kreis]) {
-                speed_Kreis[kreis] = setSpeed(speed_Kreis[kreis])
-                // print("speed K"+(kreis+1)+": "+speed_Kreis[kreis])
+            if (selKreis[kreis]) {
+                speedKreis[kreis] = setSpeed(speedKreis[kreis])
+                // print("speed K"+(kreis+1)+": "+speedKreis[kreis])
                 if (kreis == 0) {
-                    radio.sendValue("speed_K1", speed_Kreis[0])
-                    console.log("speed_K1: " + speed_Kreis[0])
+                    radio.sendValue("speedK1", speedKreis[0])
+                    console.log("speedK1: " + speedKreis[0])
                 }
                 
                 if (kreis == 1) {
-                    radio.sendValue("speed_K2", speed_Kreis[1])
-                    console.log("speed_K2: " + speed_Kreis[1])
+                    radio.sendValue("speedK2", speedKreis[1])
+                    console.log("speedK2: " + speedKreis[1])
                 }
                 
                 if (kreis == 2) {
-                    radio.sendValue("speed_K3", speed_Kreis[2])
-                    console.log("speed_K3: " + speed_Kreis[1])
+                    radio.sendValue("speedK3", speedKreis[2])
+                    console.log("speedK3: " + speedKreis[1])
                 }
                 
             }
@@ -114,27 +114,27 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
         console.log("A: Send direction")
         for (kreis = 0; kreis < 3; kreis++) {
             console.log("kreis: " + kreis)
-            if (sel_Kreis[kreis]) {
+            if (selKreis[kreis]) {
                 console.log("sel: " + kreis)
-                if (vor_Kreis[kreis] == 0) {
-                    vor_Kreis[kreis] = 1
+                if (vorKreis[kreis] == 0) {
+                    vorKreis[kreis] = 1
                     led.plot(kreis, 0)
                 } else {
-                    vor_Kreis[kreis] = 0
+                    vorKreis[kreis] = 0
                     led.unplot(kreis, 0)
                 }
                 
-                console.log("vor K" + (kreis + 1) + ": " + vor_Kreis[kreis])
+                console.log("vor K" + (kreis + 1) + ": " + vorKreis[kreis])
                 if (kreis == 0) {
-                    radio.sendValue("vor_K1", vor_Kreis[0])
+                    radio.sendValue("vorK1", vorKreis[0])
                 }
                 
                 if (kreis == 1) {
-                    radio.sendValue("vor_K2", vor_Kreis[1])
+                    radio.sendValue("vorK2", vorKreis[1])
                 }
                 
                 if (kreis == 2) {
-                    radio.sendValue("vor_K3", vor_Kreis[2])
+                    radio.sendValue("vorK3", vorKreis[2])
                 }
                 
             }
@@ -143,26 +143,26 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
     } else if (mode == "ea") {
         console.log("A: ea")
         for (kreis = 0; kreis < 3; kreis++) {
-            if (sel_Kreis[kreis]) {
-                if (ein_Kreis[kreis] == 0) {
-                    ein_Kreis[kreis] = 1
+            if (selKreis[kreis]) {
+                if (einKreis[kreis] == 0) {
+                    einKreis[kreis] = 1
                     led.plot(kreis, 1)
                 } else {
-                    ein_Kreis[kreis] = 0
+                    einKreis[kreis] = 0
                     led.unplot(kreis, 1)
                 }
                 
-                console.log("ein K" + (kreis + 1) + ": " + ein_Kreis[kreis])
+                console.log("ein K" + (kreis + 1) + ": " + einKreis[kreis])
                 if (kreis == 0) {
-                    radio.sendValue("ein_K1", ein_Kreis[0])
+                    radio.sendValue("einK1", einKreis[0])
                 }
                 
                 if (kreis == 1) {
-                    radio.sendValue("ein_K2", ein_Kreis[1])
+                    radio.sendValue("einK2", einKreis[1])
                 }
                 
                 if (kreis == 2) {
-                    radio.sendValue("ein_K3", ein_Kreis[2])
+                    radio.sendValue("einK3", einKreis[2])
                 }
                 
             }
@@ -221,32 +221,32 @@ radio.onReceivedValue(function on_received_value(name: string, value: number) {
     console.log("daten empfangen: " + name + " = " + value)
     //  Kreis 1
     let idx = 0
-    if (name == "ein_K1") {
-        ein_Kreis[idx] = value
-    } else if (name == "vor_K1") {
-        vor_Kreis[idx] = value
-    } else if (name == "u_ist_K1") {
-        speed_Kreis[idx] = value
+    if (name == "einK1") {
+        einKreis[idx] = value
+    } else if (name == "vorK1") {
+        vorKreis[idx] = value
+    } else if (name == "uIstK1") {
+        speedKreis[idx] = value
     }
     
     //  Kreis 2
     idx = 1
-    if (name == "ein_K2") {
-        ein_Kreis[idx] = value
-    } else if (name == "vor_K2") {
-        vor_Kreis[idx] = value
-    } else if (name == "u_ist_K2") {
-        speed_Kreis[idx] = value
+    if (name == "einK2") {
+        einKreis[idx] = value
+    } else if (name == "vorK2") {
+        vorKreis[idx] = value
+    } else if (name == "uIstK2") {
+        speedKreis[idx] = value
     }
     
     //  Kreis 3
     idx = 2
-    if (name == "ein_K3") {
-        ein_Kreis[idx] = value
-    } else if (name == "vor_K3") {
-        vor_Kreis[idx] = value
-    } else if (name == "u_ist_K3") {
-        speed_Kreis[idx] = value
+    if (name == "einK3") {
+        einKreis[idx] = value
+    } else if (name == "vorK3") {
+        vorKreis[idx] = value
+    } else if (name == "uIstK3") {
+        speedKreis[idx] = value
     }
     
     showKreisLEDs()
@@ -273,28 +273,28 @@ radio.onReceivedValue(function on_received_value(name: string, value: number) {
 //  Daten Senden
 /** 
 def sendData():
-    global send_request
-    if send_request == 1:
+    global sendRequest
+    if sendRequest == 1:
         # Daten senden Kreis 1
         i = 0
-        serial.write_value("speed", speed_Kreis[i])
+        serial.write_value("speed", speedKreis[i])
         #radio.send_number(1)
         #radio.set_transmit_serial_number(True)
-        radio.send_value("speed_K1", speed_Kreis[i])
+        radio.send_value("speedK1", speedKreis[i])
         # Daten senden Kreis 1
         i = 1
-        serial.write_value("speed_K2", speed_Kreis[i])
+        serial.write_value("speedK2", speedKreis[i])
         #radio.send_number(2)
         #radio.set_transmit_serial_number(True)
-        radio.send_value("speed_K2", speed_Kreis[i])
+        radio.send_value("speedK2", speedKreis[i])
         # Daten senden Kreis 1
         i = 2
-        serial.write_value("speed_K3", speed_Kreis[i])
+        serial.write_value("speedK3", speedKreis[i])
         #radio.send_number(2)
         #radio.set_transmit_serial_number(True)
-        radio.send_value("speed_K3", speed_Kreis[i])
+        radio.send_value("speedK3", speedKreis[i])
 
-        send_request = 0
+        sendRequest = 0
 
  */
 // 
@@ -305,20 +305,20 @@ def sendData():
 function kreisSelection() {
     
     console.log("kreisSelection")
-    if (sel_Kreis[0]) {
-        sel_Kreis[0] = 0
-        sel_Kreis[1] = 1
-    } else if (sel_Kreis[1]) {
-        sel_Kreis[1] = 0
-        sel_Kreis[2] = 1
-    } else if (sel_Kreis[2]) {
-        sel_Kreis[2] = 0
-        sel_Kreis[0] = 1
+    if (selKreis[0]) {
+        selKreis[0] = 0
+        selKreis[1] = 1
+    } else if (selKreis[1]) {
+        selKreis[1] = 0
+        selKreis[2] = 1
+    } else if (selKreis[2]) {
+        selKreis[2] = 0
+        selKreis[0] = 1
     } else {
-        sel_Kreis[0] = 1
+        selKreis[0] = 1
     }
     
-    console.log("Selection: " + sel_Kreis[0] + sel_Kreis[1] + sel_Kreis[2])
+    console.log("Selection: " + selKreis[0] + selKreis[1] + selKreis[2])
     showSelLED()
 }
 
@@ -326,8 +326,8 @@ function kreisSelection() {
 function showSelLED() {
     console.log("showSelLED")
     let i = 0
-    for (let sel of sel_Kreis.slice(0)) {
-        console.log("i: " + i + " sel_Kreis" + i + "  sel " + sel)
+    for (let sel of selKreis.slice(0)) {
+        console.log("i: " + i + " selKreis" + i + "  sel " + sel)
         if (sel) {
             led.plot(3, i)
         } else {
@@ -345,23 +345,23 @@ function showSpeedLED(kreis: number, speed: number) {
     let br2 = 0
     let br3 = 0
     if (speed >= 0) {
-        br1 = Math.min(speed / speedlim2, 1) * br_max
+        br1 = Math.min(speed / speedLim2, 1) * br_max
         led.plotBrightness(kreis, 2, br1)
         led.plotBrightness(kreis, 3, 0)
         led.plotBrightness(kreis, 4, 0)
         console.log("K" + (kreis + 1) + " br1: " + br1)
     }
     
-    if (speed > speedlim1) {
-        br2 = Math.min((speed - speedlim1) / (speedlim2 - speedlim1), 1) * br_max
+    if (speed > speedLim1) {
+        br2 = Math.min((speed - speedLim1) / (speedLim2 - speedLim1), 1) * br_max
         led.plotBrightness(kreis, 2, br_max)
         led.plotBrightness(kreis, 3, br2)
         led.plotBrightness(kreis, 4, 0)
         console.log("K" + (kreis + 1) + " br2: " + br2)
     }
     
-    if (speed > speedlim2) {
-        br3 = Math.min((speed - speedlim2) / (100 - speedlim2), 1) * br_max
+    if (speed > speedLim2) {
+        br3 = Math.min((speed - speedLim2) / (100 - speedLim2), 1) * br_max
         led.plotBrightness(kreis, 2, br_max)
         led.plotBrightness(kreis, 3, br_max)
         led.plotBrightness(kreis, 4, br3)
@@ -372,17 +372,17 @@ function showSpeedLED(kreis: number, speed: number) {
 
 function showSpeedLEDs() {
     for (let kreis = 0; kreis < 3; kreis++) {
-        showSpeedLED(kreis, speed_Kreis[kreis])
+        showSpeedLED(kreis, speedKreis[kreis])
         /** 
-        if speed_Kreis[kreis] > speedlim1:
+        if speedKreis[kreis] > speedLim1:
             led.plot_brightness(kreis, 2, 25)
         else:
             led.unplot(kreis, 2)
-        if speed_Kreis[kreis] > speedlim2:
+        if speedKreis[kreis] > speedLim2:
             led.plot(kreis, 3)
         else:
             led.unplot(kreis, 3)
-        if speed_Kreis[kreis] > speedlim3:
+        if speedKreis[kreis] > speedLim3:
             led.plot(kreis, 4)
         else:
             led.unplot(kreis, 4)
@@ -396,7 +396,7 @@ function showKreisLEDs() {
     let kreis: number;
     //  dir, direction
     for (kreis = 0; kreis < 3; kreis++) {
-        if (vor_Kreis[kreis] == 1) {
+        if (vorKreis[kreis] == 1) {
             led.plot(kreis, 0)
         } else {
             led.unplot(kreis, 0)
@@ -405,7 +405,7 @@ function showKreisLEDs() {
     }
     //  ea, Ein/Aus
     for (kreis = 0; kreis < 3; kreis++) {
-        if (ein_Kreis[kreis] == 1) {
+        if (einKreis[kreis] == 1) {
             led.plot(kreis, 1)
         } else {
             led.unplot(kreis, 1)
@@ -420,13 +420,13 @@ function showStatus() {
     console.log("showStatus")
     console.log("remCtrl" + remCtrl)
     for (let kreis = 0; kreis < 3; kreis++) {
-        console.log("sel_Kreis" + (kreis + 1) + ": " + sel_Kreis[kreis])
-        console.log("vor_Kreis" + (kreis + 1) + ": " + vor_Kreis[kreis])
-        console.log("ein_Kreis" + (kreis + 1) + ": " + ein_Kreis[kreis])
-        console.log("speed_Kreis" + (kreis + 1) + ": " + speed_Kreis[kreis])
+        console.log("selKreis" + (kreis + 1) + ": " + selKreis[kreis])
+        console.log("vorKreis" + (kreis + 1) + ": " + vorKreis[kreis])
+        console.log("einKreis" + (kreis + 1) + ": " + einKreis[kreis])
+        console.log("speedKreis" + (kreis + 1) + ": " + speedKreis[kreis])
     }
-    console.log("speedlim1: " + speedlim1)
-    console.log("speedlim2: " + speedlim2)
+    console.log("speedLim1: " + speedLim1)
+    console.log("speedLim2: " + speedLim2)
     console.log("receive: " + receive)
     console.log("mode: " + mode)
 }
@@ -434,7 +434,7 @@ function showStatus() {
 function setSpeed(speed: number): number {
     
     let step = 10
-    if (speed_up) {
+    if (speedUp) {
         if (speed < 100) {
             speed += step
             if (speed > 100) {
@@ -442,7 +442,7 @@ function setSpeed(speed: number): number {
             }
             
         } else {
-            speed_up = 0
+            speedUp = 0
         }
         
     } else if (speed > 0) {
@@ -452,16 +452,16 @@ function setSpeed(speed: number): number {
         }
         
     } else {
-        speed_up = 1
+        speedUp = 1
     }
     
-    console.log("Speed : " + speed + " up= " + speed_up)
+    console.log("Speed : " + speed + " up= " + speedUp)
     return speed
 }
 
 function setRichtung() {
     let richtungDir: number;
-    if (vor_Kreis) {
+    if (vorKreis) {
         richtungDir = 1
     } else {
         richtungDir = -1
@@ -473,11 +473,11 @@ function setRichtung() {
 //  =====================================
 loops.everyInterval(1000, function on_every_interval() {
     let i: number;
-    if (show_interval) {
+    if (showInterval) {
         i = 0
         console.log("===========")
         console.log("interval 1s; Zeit: " + ("" + ("" + control.millis() / 1000)))
-        console.log("speed: " + ("" + ("" + speed_Kreis[i])))
+        console.log("speed: " + ("" + ("" + speedKreis[i])))
     }
     
 })
