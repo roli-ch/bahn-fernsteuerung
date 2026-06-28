@@ -69,12 +69,20 @@ basic.showLeds(`
     . # # # .
     . . . . .
     `)
-basic.pause(1000)
+
+// Initialize TFT Display
+RBTFT18.init()
+// Clear screen - replaces whole screen with a black rectangle
+RBTFT18.clearScreen()
+RBTFT18.showString("Display OK", 10, 10, 1, Color.White, Color.Black)
+
+//basic.pause(1000)
 basic.clearScreen()
 kreisSelection()
 console.log("Init")
 // showStatus()
 // 
+
 //  Buttons
 //  =====================================
 //  A: select / speed +
@@ -171,8 +179,9 @@ input.onButtonPressed(Button.A, function on_button_pressed_a() {
     } else {
         console.log("mode Fehler")
     }
-    
+    showInfoTFT()
 })
+
 //  B: select / speed -
 //  -------------------------
 input.onButtonPressed(Button.B, function on_button_pressed_b() {
@@ -184,7 +193,9 @@ input.onButtonPressed(Button.B, function on_button_pressed_b() {
     radio.sendValue("name", 0)
     radio.sendString("xxxx")
     showStatus()
+    showInfoTFT()
 })
+
 //  A&B: Umschalten mode select/speed/dir/ea
 //  -------------------------
 // showStatus()
@@ -210,7 +221,7 @@ input.onButtonPressed(Button.AB, function on_button_pressed_ab() {
     } else {
         console.log("fehler")
     }
-    
+    showInfoTFT()
     console.log(mode)
 })
 //  -------------------------
@@ -268,7 +279,9 @@ radio.onReceivedValue(function on_received_value(name: string, value: number) {
         led.unplot(4, 4)
         pause(100)
     }
+    showInfoTFT()
 })
+
 //  -------------------------
 //  Daten Senden
 /** 
@@ -320,6 +333,36 @@ function kreisSelection() {
     
     console.log("Selection: " + selKreis[0] + selKreis[1] + selKreis[2])
     showSelLED()
+}
+
+//  -------------------------
+function showInfoTFT() {
+    // Zeigt Info auf dem TFT-Display
+    let posX = 10
+    let posY = 10
+    let lDiff = 7
+    let infoStr = "                         "
+
+    console.log("InfoTFT")
+    RBTFT18.showString("Show Info               ", posX, posY, 1, Color.White, Color.Black)
+    posY += lDiff
+    infoStr = "Mode: " + mode + "      "
+    RBTFT18.showString(infoStr, posX, posY, 1, Color.White, Color.Black)
+    posY += lDiff
+    infoStr = "Sel: Kreis 1,2,3 " + selKreis[0] + selKreis[1] + selKreis[2]
+    RBTFT18.showString(infoStr, posX, posY, 1, Color.White, Color.Black)
+    posY += lDiff
+    infoStr = "Speed: " + speedKreis[0] + " " + speedKreis[1] + " " + speedKreis[2]
+    RBTFT18.showString(infoStr, posX, posY, 1, Color.White, Color.Black)
+    posY += lDiff
+    infoStr = "Direction: " + vorKreis[0] + " " + vorKreis[1] + " " + vorKreis[2]
+    RBTFT18.showString(infoStr, posX, posY, 1, Color.White, Color.Black)
+    posY += lDiff
+    infoStr = "Ein: " + einKreis[0] + " " + einKreis[1] + " " + einKreis[2]
+    RBTFT18.showString(infoStr, posX, posY, 1, Color.White, Color.Black)
+    posY += lDiff
+    infoStr = "Remote Ctrl: " + remCtrl
+    RBTFT18.showString(infoStr, posX, posY, 1, Color.White, Color.Black)
 }
 
 //  -------------------------
